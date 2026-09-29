@@ -1,0 +1,673 @@
+@import "tailwindcss";
+/* =========================================================
+   VAZIR FONT
+   استفاده از فونت Vazir در کل پروژه
+   ========================================================= */
+
+@font-face {
+  font-family: "Vazir";
+  src: url("/node_modules/vazir-font/dist/Vazir-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Vazir";
+  src: url("/node_modules/vazir-font/dist/Vazir-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Vazir";
+  src: url("/node_modules/vazir-font/dist/Vazir-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+}
+/* =========================================================
+   CALENDAR - DAY VIEW
+   این فایل فقط برای صفحه‌ی روزهای تقویم است.
+   ========================================================= */
+
+/* =========================================================
+   MAIN CALENDAR
+   اندازه و جای تقویم در صفحه‌ی روزها
+   ========================================================= */
+body {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.33) 0%,
+      rgba(15, 35, 53, 0.478) 100%
+    ),
+    url("assets/photo-1644088379091-d574269d422f.avif") center / cover no-repeat;
+  height: 100vh;
+  font-family: "Vazir", sans-serif;
+}
+#root > div {
+}
+.rmdp-header-values {
+  font-weight: bold;
+}
+.calendar-large {
+  width: 80vw !important;
+  height: 85% !important;
+
+  position: fixed !important;
+
+  top: 50% !important;
+  left: 50% !important;
+
+  transform: translate(-50%, -50%) !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  border-radius: 1rem !important;
+
+  background-color: rgb(255 255 255 / 0.03) !important;
+}
+
+/* =========================================================
+   CALENDAR WRAPPER
+   فضای داخلی اصلی تقویم
+   ========================================================= */
+
+.calendar-large .rmdp-wrapper {
+  width: 100% !important;
+  height: 90% !important;
+  box-sizing: border-box !important;
+  border-radius: 1rem !important;
+  background-color: none !important;
+  border-radius: 1rem !important;
+}
+
+/* =========================================================
+   TOP CLASS
+   ========================================================= */
+
+.calendar-large .rmdp-top-class {
+  width: 100% !important;
+  height: 100% !important;
+
+  display: flex !important;
+  border-radius: 1rem !important;
+
+  box-sizing: border-box !important;
+  backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+
+  /* border: 1px solid rgba(255, 255, 255, 0.05) !important; */
+}
+
+/* =========================================================
+   CALENDAR
+   ساختار اصلی تقویم
+   ========================================================= */
+
+.calendar-large .rmdp-calendar {
+  width: 100% !important;
+  height: 100% !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 1px 32px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 1rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   HEADER
+   هدر تقویم نباید کش بیاید
+   ========================================================= */
+
+.calendar-large .rmdp-header {
+  flex-shrink: 0 !important;
+}
+
+/* =========================================================
+   DAY PICKER
+   فقط صفحه‌ی روزها
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 1 auto !important;
+
+  min-height: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   INNER DAY PICKER
+   محتوای داخلی صفحه‌ی روزها
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker > div {
+  width: 100% !important;
+
+  box-sizing: border-box !important;
+}
+
+/* .rmdp-day{
+  z-index: 999 !important;
+  overflow: visible;
+}
+.calendar-day-number  {
+  z-index: 10000 !important;
+} */
+/* =========================================================
+   WEEK
+   هر ردیف هفته شامل ۷ ستون است
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-week {
+  width: 100% !important;
+  height: 50%;
+  display: grid !important;
+
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  gap: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   DAY CELL
+   خانه‌ی هر روز
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-day {
+  position: relative !important;
+
+  width: 100% !important;
+
+  height: 100% !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+
+  padding: clamp(0.3rem, 1vh, 1.2rem) !important;
+
+  box-sizing: border-box !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden !important;
+
+  background: transparent !important;
+}
+.rmdp-day-hidden {
+}
+
+/* =========================================================
+   DAY NUMBER
+   عدد روز داخل خانه
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-day > span.sd {
+  position: absolute !important;
+
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+
+  width: 100% !important;
+  /* height: 100% !important; */
+
+  margin: 0 !important;
+
+  padding: 0.2rem 0 !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+
+  border-radius: 0 !important;
+
+  background: transparent !important;
+
+  color: #000 !important;
+
+  z-index: 1 !important;
+
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease !important;
+
+  box-shadow: none;
+}
+
+/* =========================================================
+   NORMAL DAY HOVER
+   هاور روی روز عادی
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-day:hover > span.sd {
+  background-color: rgb(255 255 255 / 0.05) !important;
+}
+
+/* =========================================================
+   NOTE HOVER
+   وقتی موس روی نوت است، خود خانه‌ی روز نباید Hover شود
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .calendar-note-line.note-hovered {
+  opacity: 0.9 !important;
+}
+
+/* خود نوت Hover جداگانه داشته باشد */
+.calendar-large .rmdp-day-picker .calendar-note-line:hover {
+  /* اینجا استایل Hover نوت را قرار می‌دهیم */
+  opacity: 0.7;
+}
+
+/* =========================================================
+   SELECTION
+   استایل روزهای انتخاب‌شده
+   ========================================================= */
+
+/* یک روز */
+
+/* .calendar-large
+  .rmdp-day-picker
+  .rmdp-day
+  > span.sd.selection-single, */
+
+/* شروع بازه */
+
+/* .calendar-large
+  .rmdp-day-picker
+  .rmdp-day
+  > span.sd.selection-start, */
+
+/* وسط بازه */
+
+/* .calendar-large
+  .rmdp-day-picker
+  .rmdp-day
+  > span.sd.selection-middle, */
+
+/* پایان بازه */
+
+/* .calendar-large
+  .rmdp-day-picker
+  .rmdp-day
+  > span.sd.selection-end {
+  background: #fff !important;
+  background-color: #fff !important;
+
+  color: #000 !important;
+
+  border-radius: 0 !important;
+
+  opacity: 1 !important;
+
+  box-shadow: none !important;
+
+  transition: none !important;
+} */
+
+/* =========================================================
+   SELECTION HOVER
+   هاور نباید رنگ انتخاب را تغییر دهد
+   ========================================================= */
+
+/* .calendar-large .rmdp-day-picker .rmdp-day:hover > span.sd.selection-single,
+.calendar-large .rmdp-day-picker .rmdp-day:hover > span.sd.selection-start,
+.calendar-large .rmdp-day-picker .rmdp-day:hover > span.sd.selection-middle,
+.calendar-large .rmdp-day-picker .rmdp-day:hover > span.sd.selection-end {
+  background: #fff !important;
+  background-color: #fff !important;
+
+  color: #000 !important;
+} */
+.calendar-large .rmdp-day-picker .calendar-day-number,
+.calendar-large .rmdp-day-picker .calendar-note-line,
+.calendar-large .rmdp-day-picker .calendar-note-line-empty,
+.calendar-large .rmdp-day-picker .calendar-more {
+  flex-shrink: 0 !important;
+}
+/* =========================================================
+   HIDDEN DAYS
+   روزهای متعلق به ماه قبل و بعد
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-day-hidden {
+  visibility: hidden !important;
+
+  pointer-events: none !important;
+}
+
+/* =========================================================
+   WEEK HEADER
+   نام روزهای هفته
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-week-day {
+  box-sizing: border-box !important;
+  color: var(--color-gray-400) !important;
+  margin: auto;
+}
+
+/* =========================================================
+   NOTE
+   نوت‌هایی که روی روزها قرار می‌گیرند
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .calendar-note-line {
+  width: calc(100% + 2px) !important;
+
+  height: 0.8rem;
+
+  background: #fff;
+
+  color: #000;
+
+  font-size: 8px;
+
+  padding: 2px 6px;
+
+  margin-bottom: 0.1rem;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+
+  z-index: 100 !important;
+  margin-left: -1px !important;
+  position: relative !important;
+  z-index: 100 !important;
+  box-sizing: border-box !important;
+}
+
+.calendar-large .rmdp-day-picker .rmdp-day > span.sd {
+  overflow: visible !important;
+  color: var(--color-gray-400) !important;
+  font-size: 0.8rem;
+   flex-direction: column !important;
+}
+.calendar-large .rmdp-day-picker .calendar-note-line {
+  position: relative !important;
+  z-index: 99999 !important;
+}
+
+/* =========================================================
+   NOTE START
+   ابتدای یک نوت چندروزه
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .calendar-note-start {
+  border-radius: 0 5px 5px 0;
+
+  padding-right: 6px;
+}
+
+/* =========================================================
+   NOTE MIDDLE
+   وسط نوت چندروزه
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .calendar-note-middle {
+  border-radius: 0;
+}
+
+/* =========================================================
+   NOTE END
+   انتهای نوت چندروزه
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .calendar-note-end {
+  border-radius: 5px 0 0 5px;
+}
+
+/* =========================================================
+   NOTE SINGLE
+   نوتی که فقط یک روز دارد
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .calendar-note-single {
+  border-radius: 5px;
+
+  padding-right: 6px;
+}
+
+/* =========================================================
+   MORE
+   وقتی تعداد نوت‌ها بیشتر از حد نمایش باشد
+   ========================================================= */
+.calendar-large .rmdp-day-picker .calendar-more {
+  width: 100%;
+  height: 0.5rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.12);
+
+  color: #fff;
+
+  font-size: .5rem;
+  font-weight: 500;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+
+  transition: background-color 0.12s ease;
+
+  z-index: 100 !important;
+  flex-shrink: 0 !important;
+}
+
+.calendar-large .rmdp-day-picker .calendar-more:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.calendar-day-number {
+  padding-right: 0.8rem;
+  color: oklch(87.2% 0.01 258.338) !important;
+}
+
+.calendar-large .rmdp-calendar > :nth-child(2) {
+  height: 27%;
+}
+.sd {
+  width: 100%;
+}
+.calendar-note-line {
+  padding: 0 !important;
+  width: 100% !important;
+}
+.calendar-large .rmdp-day-picker .calendar-note-line {
+  padding: 0 !important;
+  width: 100% !important;
+  z-index: 10000 !important;
+}
+
+/* =========================================================
+   NOTE LAYER
+   لایه‌ی نوت باید بالاتر از ساختار داخلی خانه قرار بگیرد.
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-day > span.sd {
+  overflow: visible !important;
+}
+
+.calendar-large .rmdp-day-picker .calendar-note-line {
+  position: relative !important;
+
+  z-index: 99999 !important;
+}
+.rmdp-shadow {
+  box-shadow: none !important;
+}
+/* =========================================================
+   RESPONSIVE - TABLET / MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .calendar-day-number {
+    padding-right: 0.5rem;
+  }
+  .calendar-large {
+    height: 85% !important;
+  }
+
+  .calendar-large .rmdp-day-picker .rmdp-day {
+    height: 100% !important;
+
+    padding: clamp(0.4rem, 1.5vw, 1rem) !important;
+  }
+}
+
+/* =========================================================
+   SMALL HEIGHT
+   برای صفحه‌هایی که ارتفاع کمی دارند
+   ========================================================= */
+
+@media (max-height: 600px) {
+  .calendar-large {
+    height: 85% !important;
+  }
+
+  .calendar-large .rmdp-day-picker .rmdp-day {
+    height: 100% !important;
+
+    /* padding: .5rem !important; */
+  }
+}
+
+/* =========================================================
+   VERY SMALL WIDTH
+   موبایل‌های خیلی باریک
+   ========================================================= */
+
+@media (max-width: 480px) {
+  body {
+    height: 100%;
+  }
+  .calendar-large {
+    width: 100% !important;
+    height: 85% !important;
+  }
+
+  .calendar-large .rmdp-day-picker .rmdp-day {
+    height: 100% !important;
+
+    padding: 0.5rem !important;
+  }
+}
+.move-note-preview {
+  /* background: rgba(0, 0, 0, 0.192) !important; */
+  opacity: 0.1;
+}
+.moving-note {
+  opacity: 0.4;
+  transform: scale(0.95);
+}
+/* 
+
+
+```css
+/* =========================================================
+   NOTE OVER DAY BORDER
+   نوت باید روی Border خانه‌های تقویم قرار بگیرد
+   تا بین قسمت‌های یک نوت چندروزه خط دیده نشود.
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-day {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+/* خود span روز هم نباید نوت را قطع کند */
+.calendar-large .rmdp-day-picker .rmdp-day > span.sd {
+  /* position: absolute !important; */
+  overflow: visible !important;
+}
+
+/* نوت روی Border خانه قرار بگیرد */
+.calendar-large .rmdp-day-picker .calendar-note-line {
+  position: relative !important;
+
+  width: calc(100% + 2px) !important;
+
+  margin-left: -1px !important;
+
+  z-index: 999 !important;
+
+  border: none !important;
+}
+
+/* =========================================================
+   MORE NOTE
+   نوت‌های داخل مودال More
+   ظاهر مشابه نوت‌های داخل تقویم
+   ========================================================= */
+
+.more-note-line {
+  width: 100%;
+  background: #fff;
+  color: #000;
+  font-size: 13px;
+  padding: .1rem .8rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  cursor: pointer;
+  border-radius: 1rem;
+  transition: opacity 0.12s ease;
+}
+
+.more-note-line:hover {
+  opacity: 0.7;
+}
+
+.more-note-line h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.more-note-line p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.6);
+  white-space: normal;
+}
+.rmdp-header-values > span {
+  color: #fff;
+}
+
+.calendar-large .rmdp-day-picker .calendar-note-line-empty {
+  width: calc(100% + 2px) !important;
+  height: 0.8rem;
+  margin-bottom: 2px;
+  background: transparent;
+  box-sizing: border-box;
+}

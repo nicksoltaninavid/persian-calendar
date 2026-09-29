@@ -1,0 +1,265 @@
+/* =========================================================
+   CALENDAR - OTHER VIEWS
+   این فایل فقط برای صفحه ماه‌ها و سال‌هاست.
+   صفحه روزها با calendar-day.css کنترل می‌شود.
+========================================================= */
+
+/* =========================================================
+   MAIN CALENDAR
+   اندازه و جای تقویم در صفحه ماه و سال
+========================================================= */
+
+.rmdp-header-values {
+  font-weight: bold;
+}
+.calendar-other {
+  width: 80vw !important;
+  height: 85% !important;
+
+  position: fixed !important;
+
+  top: 50% !important;
+  left: 50% !important;
+
+  transform: translate(-50%, -50%) !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  border-radius: 1rem !important;
+
+  box-sizing: border-box !important;
+  box-shadow: 0 1px 32px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 1rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background-color: rgb(255 255 255 / 0.03) !important;
+  backdrop-filter: blur(24px) !important;
+}
+
+/* =========================================================
+   WRAPPER
+========================================================= */
+
+.calendar-other .rmdp-wrapper {
+  width: 100% !important;
+  height: 90% !important;
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   TOP CLASS
+========================================================= */
+
+.calendar-other .rmdp-top-class {
+  width: 100% !important;
+  height: 90% !important;
+
+  display: flex !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   CALENDAR
+========================================================= */
+
+.calendar-other .rmdp-calendar {
+  width: 100% !important;
+  height: 80% !important;
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  padding: 1rem 2rem;
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.calendar-other .rmdp-header {
+  flex-shrink: 0 !important;
+}
+.calendar-other .rmdp-day-picker {
+  display: none !important;
+}
+.rmdp-month-picker,
+.rmdp-year-picker {
+}
+
+/* =========================================================
+   MONTH + YEAR PICKER
+   هر دو نمای ماه و سال داخل این محدوده قرار می‌گیرند.
+========================================================= */
+
+.calendar-other .rmdp-month-picker,
+.calendar-other .rmdp-year-picker {
+  /* width: 98% !important; */
+  height: 70vh;
+  flex: 1 1 auto !important;
+  box-sizing: border-box !important;
+  background-color: transparent !important;
+}
+
+/* =========================================================
+   INNER CONTENT
+========================================================= */
+
+.calendar-other .rmdp-month-picker > div,
+.calendar-other .rmdp-year-picker > div {
+  width: 100% !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   ROWS
+   ماه‌ها و سال‌ها به صورت ۳ ستونه نمایش داده می‌شوند.
+========================================================= */
+
+.calendar-other .rmdp-month-picker .rmdp-ym,
+.calendar-other .rmdp-year-picker .rmdp-ym {
+  width: 100% !important;
+  display: grid !important;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   MONTH + YEAR CELL
+   خانه هر ماه یا سال
+========================================================= */
+
+.calendar-other .rmdp-month-picker .rmdp-day,
+.calendar-other .rmdp-year-picker .rmdp-day {
+  width: 100% !important;
+
+  height: 100% !important;
+
+  min-width: 0 !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  overflow: hidden !important;
+
+  background: transparent !important;
+}
+
+/* =========================================================
+   MONTH + YEAR TEXT
+   متن ماه یا سال وسط خانه قرار می‌گیرد.
+========================================================= */
+
+.calendar-other .rmdp-month-picker .rmdp-day > span,
+.calendar-other .rmdp-year-picker .rmdp-day > span {
+  width: 100% !important;
+
+  height: 100% !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+
+  box-sizing: border-box !important;
+
+  background: transparent !important;
+
+  color: #000 !important;
+
+  border-radius: 0 !important;
+  color: var(--color-gray-400) !important;
+}
+
+/* =========================================================
+   HOVER
+   هاور ماه و سال
+========================================================= */
+
+.calendar-other .rmdp-month-picker .rmdp-day:hover > span,
+.calendar-other .rmdp-year-picker .rmdp-day:hover > span {
+  background-color: rgb(255 255 255 / 0.05) !important;
+  color: #fff !important;
+}
+
+/* =========================================================
+   SELECTED
+   ماه یا سال انتخاب‌شده
+========================================================= */
+
+.calendar-other .rmdp-month-picker .rmdp-day.rmdp-selected > span,
+.calendar-other .rmdp-year-picker .rmdp-day.rmdp-selected > span {
+  background: #fff !important;
+
+  background-color: #fff !important;
+
+  color: #000 !important;
+
+  border-radius: 0 !important;
+}
+
+/* =========================================================
+   TODAY
+========================================================= */
+
+.calendar-other .rmdp-month-picker .rmdp-day.rmdp-today > span,
+.calendar-other .rmdp-year-picker .rmdp-day.rmdp-today > span {
+  border-radius: 0 !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+  .calendar-other {
+    width: 95vw !important;
+
+    height: 85vh !important;
+  }
+
+  .calendar-other .rmdp-month-picker .rmdp-day,
+  .calendar-other .rmdp-year-picker .rmdp-day {
+    height: 100% !important;
+  }
+}
+
+/* =========================================================
+   VERY SMALL WIDTH
+========================================================= */
+
+@media (max-width: 480px) {
+  .calendar-other {
+    width: 98vw !important;
+
+    height: 90vh !important;
+  }
+
+  .calendar-other .rmdp-month-picker .rmdp-day,
+  .calendar-other .rmdp-year-picker .rmdp-day {
+    height: 100% !important;
+  }
+}
+.rmdp-day span {
+  border-radius: 50%;
+  bottom: 0 !important;
+  font-size: 14px;
+  left: 0 !important;
+  position: absolute;
+  right: 0 !important;
+  top: 0 !important;
+  background-color: none !important;
+}
