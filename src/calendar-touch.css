@@ -1,0 +1,135 @@
+/* =========================================================
+   TOUCH SUPPORT + MOBILE FIXES
+   این فایل فقط برای لمس و موبایل است.
+   به استایل‌های قبلی دست نمی‌زند؛ فقط اضافه است.
+   ========================================================= */
+
+/* =========================================================
+   ۱) لمس: بدون این قانون مرورگر به‌جای درگ اسکرول می‌کند
+   ========================================================= */
+
+.calendar-large .rmdp-day-picker .rmdp-day {
+  touch-action: none;
+
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.calendar-large .rmdp-day-picker .calendar-note-line,
+.calendar-large .rmdp-day-picker .calendar-note-line-empty,
+.calendar-large .rmdp-day-picker .calendar-more {
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================================================
+   ۲) بک‌گراند: لایه‌ی fixed
+   در موبایل 100vh با نوار آدرس مرورگر درست کار نمی‌کند
+   و بک‌گراند بریده می‌شود. لایه‌ی fixed همیشه تمام صفحه
+   را می‌پوشاند و با اسکرول هم تکان نمی‌خورد.
+   ========================================================= */
+
+body {
+  background: none !important;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.33) 0%,
+      rgba(15, 35, 53, 0.478) 100%
+    ),
+    url("assets/photo-1644088379091-d574269d422f.avif") center / cover no-repeat;
+}
+
+/* =========================================================
+   ۳) موبایل: فونت‌ها و ارتفاع نوت‌ها کوچک‌تر
+   تا اعداد روز و نوت‌ها روی هم نیفتند
+   ========================================================= */
+
+@media (max-width: 480px) {
+  /* خانه‌ی روز فشرده‌تر */
+  .calendar-large .rmdp-day-picker .rmdp-day {
+    padding: 0.25rem 0.2rem !important;
+  }
+
+  /* عدد روز داخل خانه */
+  .calendar-large .rmdp-day-picker .rmdp-day > span.sd {
+    font-size: 0.6rem !important;
+    padding: 0.1rem 0 0 !important;
+  }
+
+  .calendar-day-number {
+    font-size: 0.6rem !important;
+    padding-right: 0.35rem !important;
+    padding-bottom: 0.05rem !important;
+  }
+
+  /* نوت‌ها باریک‌تر و کوچک‌تر */
+  .calendar-large .rmdp-day-picker .calendar-note-line {
+    height: 0.55rem !important;
+    line-height: 0.55rem !important;
+    font-size: 6px !important;
+    padding: 0 3px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .calendar-large .rmdp-day-picker .calendar-note-line-empty {
+    height: 0.55rem !important;
+    margin-bottom: 1px !important;
+  }
+
+  /* دکمه‌ی more */
+  .calendar-large .rmdp-day-picker .calendar-more {
+    height: 0.55rem !important;
+    line-height: 0.55rem !important;
+    font-size: 0.45rem !important;
+  }
+
+  /* نام روزهای هفته */
+  .calendar-large .rmdp-day-picker .rmdp-week-day {
+    font-size: 0.55rem !important;
+  }
+
+  /* هدر تقویم (نام ماه و سال) */
+  .rmdp-header-values {
+    font-size: 0.9rem !important;
+  }
+}
+
+/* =========================================================
+   ۴) موبایل‌های کمی بزرگ‌تر (۴۸۱ تا ۶۴۰)
+   سایز متوسط بین موبایل و دسکتاپ
+   ========================================================= */
+
+@media (min-width: 481px) and (max-width: 640px) {
+  .calendar-large .rmdp-day-picker .calendar-note-line {
+    height: 0.65rem !important;
+    line-height: 0.65rem !important;
+    font-size: 7px !important;
+  }
+
+  .calendar-large .rmdp-day-picker .calendar-note-line-empty {
+    height: 0.65rem !important;
+  }
+
+  .calendar-large .rmdp-day-picker .calendar-more {
+    height: 0.6rem !important;
+    font-size: 0.5rem !important;
+  }
+
+  .calendar-day-number {
+    font-size: 0.7rem !important;
+  }
+}

@@ -87,9 +87,7 @@
 .calendar-other .rmdp-day-picker {
   display: none !important;
 }
-.rmdp-month-picker,
-.rmdp-year-picker {
-}
+
 
 /* =========================================================
    MONTH + YEAR PICKER

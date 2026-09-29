@@ -1,11 +1,12 @@
 import { Calendar } from "react-multi-date-picker";
 import DateObject from "react-date-object";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import "./calendar-day.css";
 import "./calendar-month-year.css";
+import "./calendar-touch.css";
 import {
   faXmark,
   faPen,
@@ -30,14 +31,15 @@ function App() {
   const [noteTitle, setNoteTitle] = useState("");
   const [noteDescription, setNoteDescription] = useState("");
   const [notes, setNotes] = useState(() => {
-  try {
-    const saved = localStorage.getItem("calendar-notes");
-    return saved ? JSON.parse(saved) : [];
-  } catch (error) {
-    console.error("Failed to load notes from localStorage:", error);
-    return [];
-  }
-});
+    try {
+      const saved = localStorage.getItem("calendar-notes");
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Failed to load notes from localStorage:", error);
+      return [];
+    }
+  });
+
   // الان داریم کدام نوت را ادیت میکنیم
   const [editingNote, setEditingNote] = useState(null);
   // این مشخص میکنه اینپوت ها قابل ویرایش باشن یا نباشن
@@ -45,11 +47,10 @@ function App() {
   // کاربر فقط کلیک کرده یا واقعاً درگ کرده؟
   const [hasMoved, setHasMoved] = useState(false);
 
-  // وت‌هایی که فعلاً روی تقویم مخفی کردیم رو نگه داره
+  // نوت‌هایی که فعلاً روی تقویم مخفی کردیم رو نگه داره
   const [moreNotes, setMoreNotes] = useState([]);
-  // بازه یا بسته more مودال
+  // باز یا بسته بودن more مودال
   const [isMoreOpen, setIsMoreOpen] = useState(false);
-  // دوتاریخ بگیر و تاریخ های بینشون رو بساز و تحویل بده
 
   // مشخص می‌کند الان چه نوع درگی داریم
   const [dragMode, setDragMode] = useState(null);
@@ -59,12 +60,36 @@ function App() {
   const [moveStartDate, setMoveStartDate] = useState(null);
   // پیش‌نمایش جای جدید نوت هنگام حرکت
   const [movePrewiew, setMovePrewiew] = useState([]);
-  // آیا کاربر هنگام جابه‌جایی نوت، واقعاً موس را حرکت داده؟
+  // آیا کاربر هنگام جابه‌جایی نوت، واقعاً موس/انگشت را حرکت داده؟
   const [hasDraggedNote, setHasDraggedNote] = useState(false);
 
   const [dragSource, setDragSource] = useState(null);
 
   const [hoveredNote, setHoveredNote] = useState(null);
+
+  // تعداد لاین نوت قابل نمایش در هر روز (موبایل ۱، تبلت به بالا ۲)
+  const [maxVisibleLanes, setMaxVisibleLanes] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth < 640 ? 1 : 2,
+  );
+
+  // بعد از هر لمس، رویدادهای موسِ شبیه‌سازی‌شده را موقتاً نادیده می‌گیریم
+  const lastTouchTimeRef = useRef(0);
+
+  function isFromTouch() {
+    return Date.now() - lastTouchTimeRef.current < 600;
+  }
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 640px)");
+
+    function handleChange(event) {
+      setMaxVisibleLanes(event.matches ? 2 : 1);
+    }
+
+    handleChange(mediaQuery);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const noteLanes = useMemo(() => {
     const items = notes.map((note) => {
@@ -108,12 +133,14 @@ function App() {
   }, [notes]);
 
   useEffect(() => {
-  try {
-    localStorage.setItem("calendar-notes", JSON.stringify(notes));
-  } catch (error) {
-    console.error("Failed to save notes to localStorage:", error);
-  }
-}, [notes]);
+    try {
+      localStorage.setItem("calendar-notes", JSON.stringify(notes));
+    } catch (error) {
+      console.error("Failed to save notes to localStorage:", error);
+    }
+  }, [notes]);
+
+  // دوتاریخ بگیر و تاریخ های بینشون رو بساز و تحویل بده
   function createDateRange(start, end) {
     const range = [];
 
@@ -139,7 +166,6 @@ function App() {
       last = startDate;
     }
 
-    // میریزیم توی این متغیر که از روز اول شروع کنیم و بریم روزای بعد برای اینکه بدونیم تو کدوم روزیم
     let current = first;
     while (current <= last) {
       range.push({
@@ -153,16 +179,13 @@ function App() {
   }
 
   // این تابع کار اصلی محاسبه جابه‌جایی را انجام می‌دهد
-  // تابع سه تا ورودی داره 1 نوتی که میخوایم حرکت بدیم 2 جایی که کاربر نوت رو گرفته 3 جایی که موس الان رسیده
   function movedNoteDates(note, fromDate, toDate) {
-    // جایی که کاربر نوت رو کلیک کرده رو تبدیل میکنیم به ابجکت برای محاسبات
     const from = new DateObject({
       year: fromDate.year,
       month: fromDate.month,
       day: fromDate.day,
       calendar: persian,
     });
-    //  همون برای جایی که ول میکنه
     const to = new DateObject({
       year: toDate.year,
       month: toDate.month,
@@ -170,12 +193,10 @@ function App() {
       calendar: persian,
     });
 
-    //toDays() اختلاف بین تاریخ ها با استفاده از
+    // toDays() اختلاف بین تاریخ ها با استفاده از
     const difference = to.toDays() - from.toDays();
 
-    // بیا روی تک‌ تک تاریخ‌های این نوت حرکت کن
     return note.dates.map((noteDate) => {
-      // یکی یکی به ابجکت تبدیلشون کن
       const current = new DateObject({
         year: noteDate.year,
         month: noteDate.month,
@@ -183,10 +204,8 @@ function App() {
         calendar: persian,
       });
 
-      // تاریخ فعلی را به اندازه دیفرنس روز جابه‌جا کن.
       const newDate = current.add(difference, "day");
 
-      // از ابجکت درش میاریم و اطلاعاتی که میخوایم رو فقط میگیریم
       return {
         year: newDate.year,
         month: newDate.month.number,
@@ -195,21 +214,16 @@ function App() {
     });
   }
 
-  // یک نوت مشخص را می‌گیرد و تاریخ‌های آن نوت را با تاریخ‌های جدید جایگزین می‌کند، بدون اینکه بقیه اطلاعات نوت یا بقیه نوت‌ها تغییر کنند.
-  // دوتا ورودی داره 1 نوتی که میخواد جا به جا بشه 2 تاریخ های جدید همین نوت
+  // یک نوت مشخص را می‌گیرد و تاریخ‌های آن نوت را با تاریخ‌های جدید جایگزین می‌کند
   function updateMovedNote(note, newDates) {
-    // اخرین نسخه نوت رو میریزیم تو استیت
     setNotes((prevNotes) => {
       return prevNotes.map((item) => {
-        // اگه این همون نوتیه که کاربر جا به جاش کرده
         if (item.id === note.id) {
-          // تاریخش رو عوض می‌کنیم و اطلاعات قبلی رو نگهمیداریم
           return {
             ...item,
             dates: newDates,
           };
         }
-
         return item;
       });
     });
@@ -217,12 +231,6 @@ function App() {
 
   // وقتی موس رها می‌شود
   function handleMouseUp() {
-    console.log("MOUSE UP", {
-      dragMode,
-      hasDraggedNote,
-      movingNote,
-      movePrewiew,
-    });
     // اگر صفحه‌ی روزها فعال نیست، هیچ عملی انجام نده
     if (pickerMode !== "day") {
       setIsDragging(false);
@@ -233,7 +241,6 @@ function App() {
     if (dragMode === "move" && movingNote) {
       // آیا کاربر واقعاً موس را حرکت داده؟
       if (hasDraggedNote) {
-        // اگر پیش‌نمایش تاریخ‌های جدید وجود داشته باشد، نوت را واقعاً جابه‌جا می‌کنیم.
         if (movePrewiew.length > 0) {
           updateMovedNote(movingNote, movePrewiew);
         }
@@ -241,7 +248,6 @@ function App() {
         setEditingNote(movingNote);
         setNoteTitle(movingNote.title);
         setNoteDescription(movingNote.description);
-        // مودال را باز کن ولی فعلاً حالت ویرایش خاموش باشد.
         setIsEditing(false);
         setIsNoteOpen(true);
       }
@@ -252,6 +258,7 @@ function App() {
       setMoveStartDate(null);
       setMovePrewiew([]);
       setHasDraggedNote(false);
+      setDragSource(null);
 
       return;
     }
@@ -260,10 +267,6 @@ function App() {
     if (!isDragging || !dragStart) {
       return;
     }
-    // اگر کلیک انجام شده ولی حرکتی نداریم اینو اجراع کن
-    // if (!hasMoved) {
-    //   setSelectedRange([dragStart]);
-    // }
 
     // وقتی پنجره نوت باز شد، کاربر اجازه تایپ داشته باشد
     setIsEditing(true);
@@ -272,13 +275,11 @@ function App() {
     // دیگر موس را دنبال نکن.
     setIsDragging(false);
   }
+
   //  آیا برای این نوت روزی داریم؟
   function findNotesByDate(currentDate) {
-    // از بین همه نوت‌ها، فقط آن‌هایی را نگه دار که شرط را پاس می‌کنند.
     return notes.filter((note) => {
-      // "آیا حداقل یکی از اعضای این آرایه شرط را دارد؟"
       return note.dates.some((noteDate) => {
-        // آیا این تاریخ دقیقاً برابر روزی است که الان داریم نمایش می‌دهیم؟
         return (
           noteDate.year === currentDate.year &&
           noteDate.month === currentDate.month &&
@@ -290,21 +291,14 @@ function App() {
 
   // یررسی فعال بودن صفحه روز های تقویم
   function chekPickerMode() {
-    // عنصر مربوط به صفحه‌ی روزهای تقویم را پیدا می‌کنیم
     const dayPicker = document.querySelector(".rmdp-day-picker");
 
-    // اگر عنصر پیدا نشد، ادامه نمی‌دهیم
     if (!dayPicker) {
       return;
     }
 
-    // بررسی می‌کنیم آیا نمای روزها فعال است یا نه
     const isDayActive = dayPicker.getAttribute("data-active") === "true";
 
-    // نتیجه را برای بررسی داخل کنسول نمایش می‌دهیم
-    console.log("DAY ACTIVE:", isDayActive);
-
-    // حالت تقویم را ذخیره می‌کنیم
     setPickerMode(isDayActive ? "day" : "other");
   }
 
@@ -320,14 +314,73 @@ function App() {
     };
   }, []);
 
+  // ==============================
+  // هندلرهای مشترک موس و لمس
+  // ==============================
+
+  // شروع انتخاب بازه — هم موس هم لمس
+  function handlePressStart(currentDate) {
+    if (pickerMode !== "day") {
+      return;
+    }
+
+    // وسط جابه‌جایی نوت نباید انتخاب جدید شروع شود
+    if (dragMode === "move" && movingNote) {
+      return;
+    }
+
+    setDragMode("select");
+    setDragStart(currentDate);
+    setDragEnd(currentDate);
+    setHasMoved(false);
+    setIsDragging(true);
+    setSelectedRange([currentDate]);
+  }
+
+  // حرکت روی روزها — هم موس (mouseenter) هم لمس (touchmove)
+  function handlePressMove(currentDate) {
+    if (pickerMode !== "day") {
+      return;
+    }
+
+    // حالت جابه‌جایی نوت
+    if (dragMode === "move" && movingNote && moveStartDate) {
+      setHasDraggedNote(true);
+      setMovePrewiew(movedNoteDates(movingNote, moveStartDate, currentDate));
+      return;
+    }
+
+    // حالت انتخاب بازه
+    if (!isDragging || !dragStart) {
+      return;
+    }
+
+    setHasMoved(true);
+    setSelectedRange(createDateRange(dragStart, currentDate));
+    setDragEnd(currentDate);
+  }
+
+  // گرفتن نوت از روی تقویم برای جابه‌جایی
+  function startNoteMove(note, currentDate) {
+    setHasDraggedNote(false);
+    setDragMode("move");
+    setDragSource("day");
+    setMovingNote(note);
+    setMoveStartDate(currentDate);
+  }
+
+  // گرفتن نوت از مودال more برای جابه‌جایی
+  function pickNoteFromMore(note) {
+    setIsMoreOpen(false);
+    setHasDraggedNote(false);
+    setDragSource("more");
+    setMovingNote(note);
+    setMoveStartDate(note.dates[0]);
+    setDragMode("move");
+  }
+
   // به تقویم میگه هر روزی که داری میسازی قبل از نمایش بیا این تابع رو اجرا کن
   function mapDays({ date }) {
-    console.log("MAP DAYS:", pickerMode);
-    // اگر صفحه‌ی روزها فعال نیست، هیچ استایل یا محتوای سفارشی برای روز ایجاد نکن
-    // if (pickerMode !== "day") {
-    //   return {};
-    // }
-    // کتابخانه خیلی اطلاعات دارد و ما فقط به این سه تا نیاز داریم
     const currentDate = {
       year: date.year,
       month: date.month.number,
@@ -352,6 +405,7 @@ function App() {
     const isPreviewStart = previewIndex === 0;
     const isPreviewEnd =
       previewIndex !== -1 && previewIndex === movePrewiew.length - 1;
+
     // selectedRange شماره ایندکس فلان روز در
     const selectedIndex = selectedRange.findIndex((selectedDate) => {
       return (
@@ -361,19 +415,14 @@ function App() {
       );
     });
 
-    //  هست selectedRange اگر روز انتخابی برابر با -1 نباشه پس داخل
     const isSelected = selectedIndex !== -1;
-    // این یک انتخاب تکی است، نه بازه
     const isSingleSelected = isSelected && selectedRange.length === 1;
-    // این اولین روز بازه است
     const isFirstSelected =
       isSelected && selectedRange.length > 1 && selectedIndex === 0;
-    // این اخرین روز بازست
     const isLastSelected =
       isSelected &&
       selectedRange.length > 1 &&
       selectedIndex === selectedRange.length - 1;
-    // این روز وسط بازه است
     const isMiddleSelected =
       isSelected &&
       selectedRange.length > 2 &&
@@ -392,16 +441,11 @@ function App() {
       selectionClass = "calendar-note-middle";
     }
 
-    // if (isMovePreview) {
-    //   selectionClass = "move-preview";
-    // }
     // دادن روز به تابع پیدا کننده نوت روزها
     const savedNotes = findNotesByDate(currentDate);
 
-    // هر نوت در هر روز چه وضعیتی داره
-    // تک‌تک نوت‌هایی که روی این روز هستند رو بررسی کن
     // هر نوت در هر روز چه وضعیتی داره + لِین ثابتش
-    const MAX_VISIBLE_LANES = 2;
+    const MAX_VISIBLE_LANES = maxVisibleLanes;
 
     const notePositions = savedNotes.map((note) => {
       const { start, end } = getNoteStartEnd(note);
@@ -435,23 +479,14 @@ function App() {
 
     const moreCount = overflowNotePositions.length;
 
-    // const isPreviewStart =
-    //   isMovePreview &&
-    //   movingNote &&
-    //   movePrewiew[0].year === currentDate.year &&
-    //   movePrewiew[0].month === currentDate.month &&
-    //   movePrewiew[0].day === currentDate.day;
-
     return {
-      // className: selectionClass,
+      // برای پیدا کردن روز زیرِ انگشت هنگام درگ لمسی ضروری است
+      "data-date": `${currentDate.year}-${currentDate.month}-${currentDate.day}`,
 
-      // چیزهایی که می‌خوام داخل خانه‌ی این روز قرار بگیره، از اینجا شروع میشه
       children: (
-        // جمع کردن چند عنصر کنار هم بدون دیو اضافه دورشون
         <>
-          <div className="calendar-day-number pb-1 ">{date.day}</div>
+          <div className="calendar-day-number pb-1">{date.day}</div>
 
-          {/* رو بردار isEnd و isStartو note از هر نوت یک  */}
           {Array.from({ length: MAX_VISIBLE_LANES }).map((_, laneIndex) => {
             // آخرین لِین، وقتی سلکشن فعال است، مخصوص نوار سلکشن می‌شود
             const isSelectionSlot =
@@ -466,7 +501,6 @@ function App() {
               );
             }
 
-            // نوت واقعی این لِین را (اگر وجود دارد) پیدا کن
             const position = notePositions.find((p) => p.lane === laneIndex);
 
             if (!position) {
@@ -492,6 +526,8 @@ function App() {
             return (
               <div
                 key={note.id}
+                // برای پیدا کردن نوت زیرِ انگشت هنگام لمس لازم است
+                data-note-id={note.id}
                 className={`calendar-note-line ${noteClass} ${
                   hoveredNote === note.id ? "note-hovered" : ""
                 }`}
@@ -504,11 +540,8 @@ function App() {
                 onMouseDown={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-
-                  setHasDraggedNote(false);
-                  setDragMode("move");
-                  setMovingNote(note);
-                  setMoveStartDate(currentDate);
+                  if (isFromTouch()) return;
+                  startNoteMove(note, currentDate);
                 }}
               >
                 {isStart && note.title}
@@ -532,10 +565,15 @@ function App() {
           {moreCount > 0 && (
             <div
               className="calendar-more"
+              // برای مدیریت لمسِ دکمه more در هندلر native لازم است
+              data-more="true"
+              data-overflow-ids={JSON.stringify(
+                overflowNotePositions.map((position) => position.note.id),
+              )}
               onMouseDown={(event) => {
-                // این باعث میشه کلیک روی more اشتباهی وارد منطق onMouseDown روز نشه و مثلاً درگ جدید شروع نشه.
+                // این باعث میشه کلیک روی more اشتباهی وارد منطق onMouseDown روز نشه
                 event.stopPropagation();
-                // از آیتم شماره ۱ به بعد رو بردار
+                if (isFromTouch()) return;
                 setMoreNotes(overflowNotePositions);
                 setIsMoreOpen(true);
               }}
@@ -545,6 +583,7 @@ function App() {
           )}
         </>
       ),
+
       // وقتی اجرا میشه که کاربر دکمه موس رو روی یک روز فشار بده.
       onMouseDown: (event) => {
         if (pickerMode !== "day") {
@@ -553,66 +592,18 @@ function App() {
 
         event.preventDefault();
         event.stopPropagation();
+        if (isFromTouch()) return;
 
-        // ا داریم یک بازه جدید انتخاب می‌کنیم
-        setDragMode("select");
-        // تاریخ شروع روزی که روش کلیک شده
-        setDragStart(currentDate);
-        // تاریخ پایان هم روزی که روش کلیک شده چون درگی نداریم
-        setDragEnd(currentDate);
-        // هنوز حرکتی انجام نشده
-        setHasMoved(false);
-        // حالت انتخاب فعال شد
-        setIsDragging(true);
-
-        // فعلاً انتخاب شده‌ها فقط همین یک روز هستند.
-        setSelectedRange([currentDate]);
+        handlePressStart(currentDate);
       },
+
       onMouseEnter: () => {
-        if (pickerMode !== "day") {
-          return;
-        }
-
-        // آیا الان در حالت حرکت هستیم و نوت و تاریخ شروع حرکت را داریم؟
-        if (dragMode === "move" && movingNote && moveStartDate) {
-          console.log("MOVE ENTER", currentDate);
-
-          // چون وارد یک روز دیگه شدیم پس درگ داشتیم
-          setHasDraggedNote(true);
-          // تابع زیر سه چیز میخواد 1نوتی که باید حرکت کند 2جایی که کاربر ان را گرفته 3جایی که موس الان قرار دارد
-          const newDates = movedNoteDates(
-            // بازه نوتی مثلا 10 تا 15
-            movingNote,
-            // کاربر روی 12 موس را فشار داده.
-            moveStartDate,
-            // بعد موس را حرکت داده و وارد روز 20 شده
-            currentDate,
-          );
-          console.log("NEW DATES:", newDates);
-
-          // این تاریخ‌های جدید را به عنوان پیش‌نمایش حرکت نوت ذخیره کن
-          setMovePrewiew(newDates);
-
-          return;
-        }
-
-        if (!isDragging || !dragStart) {
-          return;
-        }
-
-        // کاربر دیگر فقط کلیک نکرده، حرکت هم داده.
-        setHasMoved(true);
-        // ساخت بازه تاریخ
-        const range = createDateRange(dragStart, currentDate);
-        // این بازه را به عنوان انتخاب فعلی ذخیره کن
-        setSelectedRange(range);
-        // آخرین جایی که موس رفته را ذخیره کن
-        setDragEnd(currentDate);
+        if (isFromTouch()) return;
+        handlePressMove(currentDate);
       },
     };
   }
 
-  // وقتی موس روی یک روز حرکت کرد
   // این قسمت مسئول تشخیص لحظه‌ایه که کاربر موس را رها می‌کند
   useEffect(() => {
     window.addEventListener("mouseup", handleMouseUp);
@@ -627,21 +618,168 @@ function App() {
     movingNote,
     movePrewiew,
     hasDraggedNote,
+    pickerMode,
+    dragSource,
+  ]);
+
+  // ==============================
+  // پشتیبانی از لمس (موبایل)
+  // React از نسخه ۱۷ رویدادهای لمسی را passive ثبت می‌کند و
+  // preventDefault داخل onTouchStart کار نمی‌کند؛
+  // پس لمس را native و با passive:false مدیریت می‌کنیم.
+  // ==============================
+  useEffect(() => {
+    function getDateFromElement(element) {
+      if (!element) {
+        return null;
+      }
+
+      const parts = element.getAttribute("data-date").split("-").map(Number);
+
+      return { year: parts[0], month: parts[1], day: parts[2] };
+    }
+
+    function isDragActive() {
+      return Boolean(isDragging || (dragMode === "move" && movingNote));
+    }
+
+    function handleTouchStart(event) {
+      if (pickerMode !== "day") {
+        return;
+      }
+
+      const target = event.target;
+      if (!target || !target.closest) {
+        return;
+      }
+
+      // ۱) دکمه‌ی more
+      const moreElement = target.closest("[data-more]");
+      if (moreElement) {
+        event.preventDefault();
+
+        let ids = [];
+        try {
+          ids = JSON.parse(
+            moreElement.getAttribute("data-overflow-ids") || "[]",
+          );
+        } catch (error) {
+          ids = [];
+        }
+
+        const positions = ids
+          .map((id) => notes.find((note) => String(note.id) === String(id)))
+          .filter(Boolean)
+          .map((note) => ({ note }));
+
+        setMoreNotes(positions);
+        setIsMoreOpen(true);
+        return;
+      }
+
+      // ۲) گرفتن نوت برای جابه‌جایی
+      const noteElement = target.closest("[data-note-id]");
+      if (noteElement) {
+        event.preventDefault();
+
+        // وسط یک جابه‌جاییِ در جریان، نوت جدیدی بردار
+        if (dragMode === "move" && movingNote) {
+          return;
+        }
+
+        const noteId = noteElement.getAttribute("data-note-id");
+        const note = notes.find((item) => String(item.id) === String(noteId));
+        const day = getDateFromElement(noteElement.closest("[data-date]"));
+
+        if (note && day) {
+          startNoteMove(note, day);
+        }
+        return;
+      }
+
+      // ۳) شروع انتخاب بازه روی روز
+      const dayElement = target.closest("[data-date]");
+      if (dayElement) {
+        event.preventDefault();
+
+        // وسط جابه‌جایی نوت، انتخاب جدید شروع نکن
+        if (dragMode === "move" && movingNote) {
+          return;
+        }
+
+        const day = getDateFromElement(dayElement);
+
+        if (day) {
+          handlePressStart(day);
+        }
+      }
+    }
+
+    function handleTouchMove(event) {
+      if (pickerMode !== "day") {
+        return;
+      }
+      if (!isDragActive()) {
+        return;
+      }
+
+      // جلوی اسکرول صفحه حین درگ را بگیر
+      event.preventDefault();
+
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      // پیدا کردن روزِ زیر انگشت
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dayElement = element?.closest("[data-date]");
+      const day = getDateFromElement(dayElement);
+
+      if (day) {
+        handlePressMove(day);
+      }
+    }
+
+    function handleTouchEnd() {
+      lastTouchTimeRef.current = Date.now();
+
+      if (isDragActive()) {
+        handleMouseUp();
+      }
+    }
+
+    // passive: false اجباری است، وگرنه preventDefault کار نمی‌کند
+    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("touchcancel", handleTouchEnd);
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, [
+    isDragging,
+    dragMode,
+    movingNote,
+    moveStartDate,
+    dragStart,
+    movePrewiew,
+    hasDraggedNote,
+    pickerMode,
+    notes,
   ]);
 
   // این تابع مسئول ذخیره کردن نوت است
   function handleSaveNote() {
-    // آیا داریم یک نوت قدیمی را ویرایش می‌کنیم یا یک نوت جدید می‌سازیم؟
     if (editingNote) {
-      // می‌خواهیم کل آرایه نوت‌ها را بگردیم
       const updatedNotes = notes.map((note) => {
-        // اگر این نوت همان نوتی است که کاربر باز کرده
         if (note.id === editingNote.id) {
-          // پس تغییرش بده
           return {
-            // همه اطلاعات قبلی رو نگهدار
             ...note,
-            // فقط این دو تا را عوض کن
             title: noteTitle,
             description: noteDescription,
           };
@@ -650,7 +788,6 @@ function App() {
       });
       setNotes(updatedNotes);
     } else {
-      // اگر نوتی برای ویرایش وجود ندارد، یک نوت جدید بساز
       const newNote = {
         id: Date.now(),
         title: noteTitle,
@@ -658,16 +795,11 @@ function App() {
         // نوت به این روزها وصل شود
         dates: selectedRange,
       };
-      // نوت جدید را به قبلی‌ها اضافه کن
       setNotes([...notes, newNote]);
     }
-    // مودال بسته شود
     setIsNoteOpen(false);
-    // حالت ویرایش خاموش شود
     setIsEditing(false);
-    // یادداشت در حال ویرایش پاک شود
     setEditingNote(null);
-    // انتخاب تاریخ پاک شود
     setSelectedRange([]);
     setNoteTitle("");
     setNoteDescription("");
@@ -675,26 +807,20 @@ function App() {
 
   // این تابع مسئول بستن مودال نوت بدون ذخیره کردن است
   function handleCloseNote() {
-    // مودال رو ببند
     setIsNoteOpen(false);
-    // اگر کاربر در حالت ویرایش بود، آن حالت را خاموش کن
     setIsEditing(false);
-    // نوت در حال ویرایش را پاک کن
     setEditingNote(null);
     setNoteTitle("");
     setNoteDescription("");
     setSelectedRange([]);
   }
+
   // این تابع مسئول حذف کردن یک نوت موجود است
   function handleDeleteNote() {
-    // کل ارایه نوتارو بگرد این نوتی که الان باز کردیم تو شیم رو  در بیار و پاک کن
     const updatedNotes = notes.filter((note) => note.id !== editingNote.id);
 
-    // آرایه جدید را جایگزین کن.
     setNotes(updatedNotes);
-    // مودال رو ببند
     setIsNoteOpen(false);
-    // دیگر نوتی برای ویرایش انتخاب نشده
     setEditingNote(null);
     setNoteTitle("");
     setNoteDescription("");
@@ -720,6 +846,7 @@ function App() {
     "پنجشنبه",
     "جمعه",
   ];
+
   return (
     <div>
       <Calendar
@@ -765,7 +892,7 @@ function App() {
               <div className="flex gap-2">
                 <button
                   onClick={handleCloseNote}
-                  className="rounded-lg cursor-pointer bg-blue-500  hover:bg-blue-600 text-white font-medium rounded-xl transition-all shadow-lg px-4 py-2 text-white px-4 py-2 text-white"
+                  className="rounded-lg cursor-pointer bg-blue-500  hover:bg-blue-600  font-medium  transition-all shadow-lg px-4 py-2  text-white"
                 >
                   <FontAwesomeIcon icon={faXmark} />
                 </button>
@@ -774,21 +901,21 @@ function App() {
                   onClick={() => {
                     setIsEditing(true);
                   }}
-                  className="rounded-lg cursor-pointer  bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-all shadow-lg px-4 py-2 text-white shadow-primary-500/20 active:scale-95 "
+                  className=" cursor-pointer  bg-blue-500 hover:bg-blue-600  font-medium rounded-xl transition-all shadow-lg px-4 py-2 text-white shadow-primary-500/20 active:scale-95 "
                 >
                   <FontAwesomeIcon icon={faPen} />
                 </button>
 
                 <button
                   onClick={handleDeleteNote}
-                  className="rounded-lg cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-all shadow-lg px-4 py-2 text-white shadow-primary-500/20 active:scale-95 "
+                  className=" cursor-pointer bg-blue-500 hover:bg-blue-600  font-medium rounded-xl transition-all shadow-lg px-4 py-2 text-white shadow-primary-500/20 active:scale-95 "
                 >
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
               </div>
               <button
                 onClick={handleSaveNote}
-                className="rounded-lg cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-all shadow-lg px-4 py-2 text-white shadow-primary-500/20 active:scale-95 "
+                className=" cursor-pointer bg-blue-500 hover:bg-blue-600  font-medium rounded-xl transition-all shadow-lg px-4 py-2 text-white shadow-primary-500/20 active:scale-95 "
               >
                 <FontAwesomeIcon icon={faFloppyDisk} />
               </button>
@@ -820,21 +947,12 @@ function App() {
                   onMouseDown={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-
-                    const note = notePosition.note;
-
-                    setIsMoreOpen(false);
-                    setHasDraggedNote(false);
-                    setDragSource("more");
-                    setMovingNote(note);
-                    setMoveStartDate(note.dates[0]);
-                    setDragMode("move");
-
-                    console.log("MORE NOTE MOUSE DOWN", {
-                      note,
-                      moveStartDate: note.dates[0],
-                      dragSource: "more",
-                    });
+                    if (isFromTouch()) return;
+                    pickNoteFromMore(notePosition.note);
+                  }}
+                  onTouchStart={(event) => {
+                    event.stopPropagation();
+                    pickNoteFromMore(notePosition.note);
                   }}
                 >
                   <h3>{notePosition.note.title}</h3>

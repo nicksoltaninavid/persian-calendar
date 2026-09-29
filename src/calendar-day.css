@@ -44,8 +44,7 @@ body {
   height: 100vh;
   font-family: "Vazir", sans-serif;
 }
-#root > div {
-}
+
 .rmdp-header-values {
   font-weight: bold;
 }
@@ -207,8 +206,7 @@ body {
 
   background: transparent !important;
 }
-.rmdp-day-hidden {
-}
+
 
 /* =========================================================
    DAY NUMBER
